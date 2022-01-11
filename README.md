@@ -1,0 +1,7 @@
+# product-manager
+It’s backend of product manager application developed by java spring boot using Mysql database, it allows user to add their products into stock by inserting the name, quantity, price, image, category, and state and visualize them in real time in a table and update or delete them whenever he can also, he can download the stock in a PDF format. 
+
+The user can watch the stock progress in a dashboard that contains a progress bar of each product and he has access of a list of commands containing customer name, email, date, address, region, city, product purchased, quantity and price he has also a search bar to find command by price, customer name … in addition of PDF generator to download this list, he has access also of a list of customers registered in data base.
+
+The customer has a wonderful platform where he can find the each product he wants easily, we provide a list of all products each product has a card that contains his image, price, quantity available and a description beside that we have a search bar to find any product by their characteristics and a menu to filter products by categories, the customer can also take a look of the newest popular and bestselling products in the home page and he can find the promotions in the menu and chatbot that helps him using the app, concerning shopping service the customer can purchase any product either by login or as a guest, by login he can directly purchasing by inserting the product and the quantity but as a guest he has to give their personnel information’s every time.
+
