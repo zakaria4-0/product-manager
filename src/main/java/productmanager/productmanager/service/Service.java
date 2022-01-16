@@ -105,8 +105,8 @@ public class Service {
         return storageRepo.findAll();
     }
 
-    public void updateProductByProductName(int productQuantityI,int productQuantity, float productPrice,String productImage,String description,String category,String state ,String productName) {
-        storageRepo.updateProductByProductName(productQuantityI,productQuantity,productPrice,productImage,description,category,state,productName);
+    public void updateProductByProductName(int productQuantityI,int productQuantity, float productPrice,float promotionPrice,String productImage,String description,String category,String state ,String productName) {
+        storageRepo.updateProductByProductName(productQuantityI,productQuantity,productPrice,promotionPrice,productImage,description,category,state,productName);
     }
 
     public Storage findStorageByProductName(String name) {
@@ -216,7 +216,7 @@ public class Service {
         document.add(Chunk.NEWLINE);
 
 
-        PdfPTable table= new PdfPTable(7);
+        PdfPTable table= new PdfPTable(8);
         table.setLockedWidth(true);
         table.setTotalWidth(570f);
 
@@ -236,6 +236,8 @@ public class Service {
 
         c1=new PdfPCell(new Phrase("Price",fontTable));
         table.addCell(c1);
+        c1=new PdfPCell(new Phrase("Promotion",fontTable));
+        table.addCell(c1);
         c1=new PdfPCell(new Phrase("Category",fontTable));
         table.addCell(c1);
         c1=new PdfPCell(new Phrase("State",fontTable));
@@ -252,8 +254,9 @@ public class Service {
                 table.addCell(String.valueOf(products.get(i).getProductQuantityI()));
                 table.addCell(String.valueOf(products.get(i).getProductQuantity()));
                 table.addCell(String.valueOf(products.get(i).getProductPrice())+" $");
+                table.addCell(String.valueOf(products.get(i).getPromotionPrice())+" $");
                 table.addCell(products.get(i).getCategory());
-            table.addCell(products.get(i).getState());
+                table.addCell(products.get(i).getState());
 
         }
         document.add(table);

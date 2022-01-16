@@ -124,10 +124,13 @@ public class Controller {
                     throw new IllegalStateException(" sold out");
                 }
             }
-            command.setPrice(storage.getProductPrice()*command.getQte());
+        if (storage.getState()=="promotion"){
+            command.setPrice(storage.getPromotionPrice()*command.getQte());
+        }else{
+            command.setPrice(storage.getProductPrice()*command.getQte());}
 
         Command obj=service.command(command);
-        service.updateProductByProductName(storage.getProductQuantityI(),storage.getProductQuantity()-command.getQte(),storage.getProductPrice(),storage.getProductImage(),storage.getDescription(),storage.getCategory(),storage.getState(),storage.getProductName());
+        service.updateProductByProductName(storage.getProductQuantityI(),storage.getProductQuantity()-command.getQte(),storage.getProductPrice(),storage.getPromotionPrice(),storage.getProductImage(),storage.getDescription(),storage.getCategory(),storage.getState(),storage.getProductName());
         return new ResponseEntity<>(obj,HttpStatus.CREATED);
     }
     @PostMapping("/commandLogin")
@@ -142,15 +145,18 @@ public class Controller {
         Storage storage=service.findStorageByProductName(command.getName());
         if(storage==null){
             throw new IllegalStateException(" this product doesn't exists in stock");
-        }else {
-            if(storage.getProductQuantity()<command.getQte()){
-                throw new IllegalStateException(" sold out");
-            }
         }
-        command.setPrice(storage.getProductPrice()*command.getQte());
+        if(storage.getProductQuantity()<command.getQte()){
+                throw new IllegalStateException(" sold out");
+        }
+
+        if (storage.getState().contentEquals("promotion")) {
+            command.setPrice(storage.getPromotionPrice()*command.getQte());
+        }else{
+        command.setPrice(storage.getProductPrice()*command.getQte());}
 
         Command obj=service.command(command);
-        service.updateProductByProductName(storage.getProductQuantityI(),storage.getProductQuantity()-command.getQte(),storage.getProductPrice(),storage.getProductImage(),storage.getDescription(),storage.getCategory(),storage.getState(),storage.getProductName());
+        service.updateProductByProductName(storage.getProductQuantityI(),storage.getProductQuantity()-command.getQte(),storage.getProductPrice(),storage.getPromotionPrice(),storage.getProductImage(),storage.getDescription(),storage.getCategory(),storage.getState(),storage.getProductName());
         return new ResponseEntity<>(obj,HttpStatus.CREATED);
     }
     @GetMapping("/getCommand/{cname}")
@@ -166,6 +172,10 @@ public class Controller {
 
     @PostMapping("/addToStock")
     public ResponseEntity<Storage> addToStock(@RequestBody Storage storage){
+        Storage stockVer=service.findStorageByProductName(storage.getProductName());
+        if(stockVer!=null){
+            throw new IllegalStateException("Product already exists");
+        }
         Storage stock=service.addProductToStock(storage);
         return new ResponseEntity<>(stock,HttpStatus.CREATED);
     }
@@ -194,8 +204,8 @@ public class Controller {
 
     @PutMapping("/updateProduct")
     public ResponseEntity<Storage> updateProduct(@RequestBody Storage storage){
-        storage.setProductQuantity(storage.getProductQuantityI());
-        service.updateProductByProductName(storage.getProductQuantityI(),storage.getProductQuantity(),storage.getProductPrice(),storage.getProductImage(),
+
+        service.updateProductByProductName(storage.getProductQuantityI(),storage.getProductQuantity(),storage.getProductPrice(),storage.getPromotionPrice(),storage.getProductImage(),
         storage.getDescription(),storage.getCategory(),storage.getState(),storage.getProductName());
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }

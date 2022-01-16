@@ -12,6 +12,7 @@ public class Storage {
     private int productQuantity;
     private int productQuantityI;
     private float productPrice;
+    private float promotionPrice;
     private String productImage;
     private String description;
     private String  category;
@@ -20,16 +21,25 @@ public class Storage {
     public Storage() {
     }
 
-    public Storage(int id, String productName, int productQuantity, int productQuantityI, float productPrice, String productImage, String description, String category, String state) {
+    public Storage(int id, String productName, int productQuantity, int productQuantityI, float productPrice, float promotionPrice, String productImage, String description, String category, String state) {
         this.id = id;
         this.productName = productName;
         this.productQuantity = productQuantity;
         this.productQuantityI = productQuantityI;
         this.productPrice = productPrice;
+        this.promotionPrice = promotionPrice;
         this.productImage = productImage;
         this.description = description;
         this.category = category;
         this.state = state;
+    }
+
+    public float getPromotionPrice() {
+        return promotionPrice;
+    }
+
+    public void setPromotionPrice(float promotionPrice) {
+        this.promotionPrice = promotionPrice;
     }
 
     public String getState() {

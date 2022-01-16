@@ -13,10 +13,10 @@ public interface StorageRepo extends JpaRepository<Storage,Integer> {
     @Modifying(clearAutomatically = true,flushAutomatically = true)
     @Transactional
     @Query("UPDATE Storage s set s.productQuantityI= :productQuantityI, s.productQuantity= :productQuantity, s.productPrice= :productPrice, " +
-            "s.productImage= :productImage, s.description= :description, s.category= :category, s.state= :state WHERE " +
+            "s.promotionPrice= :promotionPrice, s.productImage= :productImage, s.description= :description, s.category= :category, s.state= :state WHERE " +
             "s.productName= :productName")
     public void updateProductByProductName(@Param("productQuantityI") int productQuantityI,@Param("productQuantity") int productQuantity ,@Param("productPrice") float productPrice,
-                                       @Param("productImage") String productImage,@Param("description") String description,@Param("category") String category,
+                                       @Param("promotionPrice") float promotionPrice,@Param("productImage") String productImage,@Param("description") String description,@Param("category") String category,
                                            @Param("state") String state
                                       ,@Param("productName") String productName);
 
