@@ -226,7 +226,26 @@ public class Controller {
         response.setHeader(headerKey, headerValue);
         this.service.exportStock(response);
     }
+    @GetMapping("/pdfCustomers")
+    public void customersPDF(HttpServletResponse response) throws IOException {
+        response.setContentType("application/pdf");
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=List-of-customers.pdf";
+        response.setHeader(headerKey, headerValue);
+        this.service.exportCustomers(response);
+    }
 
+    @GetMapping("/listCustomers")
+    public ResponseEntity<List<Customer>> getCustomers(){
+        List<Customer> customers=service.findcustomers();
+        return new ResponseEntity<>(customers,HttpStatus.OK);
+    }
+
+    @GetMapping("/listCustomerLogins")
+    public  ResponseEntity<List<CustomerLogin>> getCustomersLogin(){
+        List<CustomerLogin> customerLogins=service.findCustomerLogins();
+        return new ResponseEntity<>(customerLogins,HttpStatus.OK);
+    }
 
 
 

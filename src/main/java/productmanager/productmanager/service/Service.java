@@ -4,16 +4,12 @@ import com.lowagie.text.*;
 import com.lowagie.text.Font;
 import com.lowagie.text.pdf.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
 import productmanager.productmanager.dto.OrderResponse;
 import productmanager.productmanager.model.*;
 import productmanager.productmanager.repo.*;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
-import java.awt.*;
-import java.awt.print.PageFormat;
 import java.io.IOException;
 import java.util.List;
 
@@ -262,6 +258,62 @@ public class Service {
         document.add(table);
         document.close();
     }
+    public void exportCustomers(HttpServletResponse response) throws IOException {
+        Document document=new Document(PageSize.A4);
+        PdfWriter.getInstance(document, response.getOutputStream());
+
+        document.open();
+        Font fontTitle = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
+        fontTitle.setSize(30);
+
+
+        Paragraph paragraph = new Paragraph("List of Cutomers:", fontTitle);
+        paragraph.setAlignment(Paragraph.ALIGN_CENTER);
+
+
+
+        document.add(paragraph);
+
+        document.add(Chunk.NEWLINE);
+
+
+        PdfPTable table= new PdfPTable(3);
+        table.setLockedWidth(true);
+        table.setTotalWidth(570f);
+
+        Font fontTable=FontFactory.getFont(FontFactory.HELVETICA_BOLD);
+        PdfPCell c1=new PdfPCell(new Phrase("Name",fontTable));
+        table.addCell(c1);
+
+        c1=new PdfPCell(new Phrase("Email",fontTable));
+
+        table.addCell(c1);
+
+        c1=new PdfPCell(new Phrase("Phone",fontTable));
+        table.addCell(c1);
+
+        table.setHeaderRows(1);
+
+        List<Customer> customers=customerRepo.findAll();
+        List<CustomerLogin> customerLogins=customerLoginRepo.findAll();
+
+        for (int i=0;i<customers.size();i++){
+
+            table.addCell(customers.get(i).getName());
+            table.addCell(customers.get(i).getEmail());
+            table.addCell(customers.get(i).getPhoneNumber());
+
+        }
+        for (int i=0;i<customerLogins.size();i++){
+
+            table.addCell(customerLogins.get(i).getName());
+            table.addCell(customerLogins.get(i).getEmail());
+            table.addCell(customerLogins.get(i).getPhoneNumber());
+
+        }
+        document.add(table);
+        document.close();
+    }
 
     public List<Storage> getStockByCategory(String category) {
         return storageRepo.findStorageByCategory(category);
@@ -277,5 +329,13 @@ public class Service {
 
     public CustomerLogin findCustomerLoginByName(String name) {
         return customerLoginRepo.findCustomerLoginByName(name);
+    }
+
+    public List<Customer> findcustomers() {
+        return customerRepo.findAll();
+    }
+
+    public List<CustomerLogin> findCustomerLogins() {
+        return customerLoginRepo.findAll();
     }
 }
