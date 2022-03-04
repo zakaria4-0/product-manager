@@ -55,7 +55,7 @@ public class Service {
         return customerLoginRepo.findCustomerByNameAndPassword(custName,custPassword);
     }
 
-    public Customer findCustomerByNameAndEmail(String name,String email) {
+    public List<Customer> findCustomerByNameAndEmail(String name, String email) {
         return customerRepo.findCustomerByNameAndEmail(name,email);
     }
 
@@ -101,8 +101,8 @@ public class Service {
         return storageRepo.findAll();
     }
 
-    public void updateProductByProductName(int productQuantityI,int productQuantity, float productPrice,float promotionPrice,String productImage,String description,String category,String state ,String productName) {
-        storageRepo.updateProductByProductName(productQuantityI,productQuantity,productPrice,promotionPrice,productImage,description,category,state,productName);
+    public void updateProductByProductName(String productName,int productQuantityI,int productQuantity, float productPrice,float promotionPrice,String productImage,String description,String category,String state ,int id) {
+        storageRepo.updateProductById(productName,productQuantityI,productQuantity,productPrice,promotionPrice,productImage,description,category,state,id);
     }
 
     public Storage findStorageByProductName(String name) {
@@ -267,7 +267,7 @@ public class Service {
         fontTitle.setSize(30);
 
 
-        Paragraph paragraph = new Paragraph("List of Cutomers:", fontTitle);
+        Paragraph paragraph = new Paragraph("List of Customers:", fontTitle);
         paragraph.setAlignment(Paragraph.ALIGN_CENTER);
 
 
@@ -323,7 +323,7 @@ public class Service {
         return storageRepo.findStorageByState(state);
     }
 
-    public Customer findCustomerByName(String name) {
+    public List<Customer> findCustomerByName(String name) {
         return customerRepo.findCustomerByName(name);
     }
 

@@ -10,7 +10,6 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "customer_sequence")
     private int cid;
     private String name;
-    @Column(unique = true)
     private String email;
     private String phoneNumber;
     private String gender;

@@ -24,8 +24,8 @@ public class Controller {
     @PostMapping("/customerplaceorder")
     public ResponseEntity<Reservation> placeOrder(@RequestBody Reservation reservation){
 
-        Customer objEmail=service.findCustomerByNameAndEmail(reservation.getName(),reservation.getEmail());
-        if(objEmail==null){
+        List<Customer> customers=service.findCustomerByNameAndEmail(reservation.getName(),reservation.getEmail());
+        if(customers.isEmpty()){
             throw new IllegalStateException(" name or email doesn't exists");
         }
 
@@ -75,7 +75,7 @@ public class Controller {
                 Customer cEmail=service.addCustomer(customer);
             return new ResponseEntity<>(cEmail,HttpStatus.CREATED);
         }
-        return new ResponseEntity("please give all your informations",HttpStatus.EXPECTATION_FAILED);
+        return new ResponseEntity("please give all your information's",HttpStatus.EXPECTATION_FAILED);
     }
 
     @PostMapping("/registercustomerlogin")
@@ -89,7 +89,7 @@ public class Controller {
             cEmail=service.addCustomerLogin(customerLogin);
             return new ResponseEntity<>(cEmail,HttpStatus.CREATED);
         }
-        return new ResponseEntity("you didn't giv your email",HttpStatus.EXPECTATION_FAILED);
+        return new ResponseEntity("you didn't give your email",HttpStatus.EXPECTATION_FAILED);
     }
 
     @PostMapping("/customerlogin")
@@ -111,7 +111,7 @@ public class Controller {
     public ResponseEntity<Command> command(@RequestBody Command command){
 
 
-        Customer customer=service.findCustomerByName(command.getCname());
+        List<Customer> customer=service.findCustomerByName(command.getCname());
 
         if(customer==null){
             throw new IllegalStateException("Invalid name ");
@@ -130,7 +130,7 @@ public class Controller {
             command.setPrice(storage.getProductPrice()*command.getQte());}
 
         Command obj=service.command(command);
-        service.updateProductByProductName(storage.getProductQuantityI(),storage.getProductQuantity()-command.getQte(),storage.getProductPrice(),storage.getPromotionPrice(),storage.getProductImage(),storage.getDescription(),storage.getCategory(),storage.getState(),storage.getProductName());
+        service.updateProductByProductName(storage.getProductName(),storage.getProductQuantityI(),storage.getProductQuantity()-command.getQte(),storage.getProductPrice(),storage.getPromotionPrice(),storage.getProductImage(),storage.getDescription(),storage.getCategory(),storage.getState(),storage.getId());
         return new ResponseEntity<>(obj,HttpStatus.CREATED);
     }
     @PostMapping("/commandLogin")
@@ -156,7 +156,7 @@ public class Controller {
         command.setPrice(storage.getProductPrice()*command.getQte());}
 
         Command obj=service.command(command);
-        service.updateProductByProductName(storage.getProductQuantityI(),storage.getProductQuantity()-command.getQte(),storage.getProductPrice(),storage.getPromotionPrice(),storage.getProductImage(),storage.getDescription(),storage.getCategory(),storage.getState(),storage.getProductName());
+        service.updateProductByProductName(storage.getProductName(),storage.getProductQuantityI(),storage.getProductQuantity()-command.getQte(),storage.getProductPrice(),storage.getPromotionPrice(),storage.getProductImage(),storage.getDescription(),storage.getCategory(),storage.getState(),storage.getId());
         return new ResponseEntity<>(obj,HttpStatus.CREATED);
     }
     @GetMapping("/getCommand/{cname}")
@@ -205,8 +205,8 @@ public class Controller {
     @PutMapping("/updateProduct")
     public ResponseEntity<Storage> updateProduct(@RequestBody Storage storage){
 
-        service.updateProductByProductName(storage.getProductQuantityI(),storage.getProductQuantity(),storage.getProductPrice(),storage.getPromotionPrice(),storage.getProductImage(),
-        storage.getDescription(),storage.getCategory(),storage.getState(),storage.getProductName());
+        service.updateProductByProductName(storage.getProductName(),storage.getProductQuantityI(),storage.getProductQuantity(),storage.getProductPrice(),storage.getPromotionPrice(),storage.getProductImage(),
+        storage.getDescription(),storage.getCategory(),storage.getState(),storage.getId());
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
