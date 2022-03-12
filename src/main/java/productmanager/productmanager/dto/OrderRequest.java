@@ -1,11 +1,7 @@
 package productmanager.productmanager.dto;
 
 
-import productmanager.productmanager.model.Customer;
-import productmanager.productmanager.model.Product;
 import productmanager.productmanager.model.Reservation;
-
-import java.util.List;
 
 public class OrderRequest {
    private Reservation reservation;

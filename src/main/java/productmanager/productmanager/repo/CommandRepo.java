@@ -11,4 +11,6 @@ public interface CommandRepo extends JpaRepository<Command,Integer> {
 
 
     List<Command> findCommandByCname(String cname);
+
+    void deleteCommandById(int id);
 }

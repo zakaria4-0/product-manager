@@ -1,7 +1,8 @@
 package productmanager.productmanager.model;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Entity
@@ -16,28 +17,29 @@ public class Reservation {
     private String ville;
     private String address;
     private String region;
+    private float total;
 
     @OneToMany(targetEntity = Product.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "cp_fk",referencedColumnName = "id")
     private List<Product> products;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false)
-    private Date date;
 
-    @PrePersist
-    private void onCreate(){
-        date=new Date();
-    }
 
-    public Reservation(String name, String email, String ville, String address, Date date, String region, List<Product> products) {
+    private LocalDate date;
+
+
+    private LocalTime time;
+
+    public Reservation(String name, String email, String ville, String address, float total, LocalDate date, String region, List<Product> products, LocalTime time) {
         this.name = name;
         this.email = email;
         this.ville = ville;
         this.address = address;
+        this.total = total;
         this.date = date;
         this.region = region;
         this.products = products;
+        this.time = time;
     }
 
     public Reservation() {
@@ -91,11 +93,11 @@ public class Reservation {
         this.address = address;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 
@@ -117,5 +119,21 @@ public class Reservation {
                 ", date=" + date +
                 ", Region='" + region + '\'' +
                 '}';
+    }
+
+    public LocalTime getTime() {
+        return time;
+    }
+
+    public void setTime(LocalTime time) {
+        this.time = time;
+    }
+
+    public float getTotal() {
+        return total;
+    }
+
+    public void setTotal(float total) {
+        this.total = total;
     }
 }

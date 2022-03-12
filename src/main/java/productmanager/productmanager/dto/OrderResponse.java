@@ -1,27 +1,32 @@
 package productmanager.productmanager.dto;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class OrderResponse {
     private int id;
     private String name;
     private String email;
-    private Date date;
+    private LocalDate date;
+    private LocalTime time;
     private String address;
     private String region;
     private String ville;
+    private float total;
     private String productName;
     private float productPrice;
     private int productQte;
 
-    public OrderResponse(int id, String name, String email, Date date, String address, String region, String ville, String productName, float productPrice, int productQte) {
+    public OrderResponse(int id, String name, String email, LocalDate date, LocalTime time, String address, String region, String ville, float total, String productName, float productPrice, int productQte) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.date = date;
+        this.time = time;
         this.address = address;
         this.region = region;
         this.ville = ville;
+        this.total = total;
         this.productName = productName;
         this.productPrice = productPrice;
         this.productQte = productQte;
@@ -38,11 +43,11 @@ public class OrderResponse {
         this.id = id;
     }
 
-    public Date getDate() {
+    public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(LocalDate date) {
         this.date = date;
     }
 
@@ -118,5 +123,21 @@ public class OrderResponse {
                 ", productPrice=" + productPrice +
                 ", productQte=" + productQte +
                 '}';
+    }
+
+    public LocalTime getTime() {
+        return time;
+    }
+
+    public void setTime(LocalTime time) {
+        this.time = time;
+    }
+
+    public float getTotal() {
+        return total;
+    }
+
+    public void setTotal(float total) {
+        this.total = total;
     }
 }

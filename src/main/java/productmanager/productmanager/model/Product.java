@@ -13,11 +13,13 @@ public class Product {
    private int qte;
    private float price;
 
+
    public Product(int pid, String name, int qte, float price) {
       this.pid = pid;
       this.name = name;
       this.qte = qte;
       this.price = price;
+
    }
 
    public Product() {
@@ -64,4 +66,6 @@ public class Product {
               ", price=" + price +
               '}';
    }
+
+
 }
