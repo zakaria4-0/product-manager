@@ -26,21 +26,6 @@ public class Controller {
         this.service = service;
     }
 
-    @PostMapping("/customerplaceorder")
-    public ResponseEntity<Reservation> placeOrder(@RequestBody Reservation reservation){
-
-        List<Customer> customers=service.findCustomerByNameAndEmail(reservation.getName(),reservation.getEmail());
-        if(customers.isEmpty()){
-            throw new IllegalStateException(" name or email doesn't exists");
-        }
-        for (Product product:reservation.getProducts()){
-            Storage storage=service.findStorageByProductName(product.getName());
-            service.updateProductById(storage.getProductName(),storage.getProductQuantityI(),storage.getProductQuantity()- product.getQte(),storage.getProductPrice(),storage.getPromotionPrice(),storage.getProductImage(),storage.getDescription(),storage.getCategory(),storage.getState(),storage.getId());
-        }
-        service.customerPlaceOrder(reservation);
-
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
-    }
     @PostMapping("/customerloginplaceorder")
     public ResponseEntity<Reservation> loginPlaceOrder(@RequestBody Reservation reservation){
         CustomerLogin objEmail=service.findCustomerLoginByNameAndEmail(reservation.getName(),reservation.getEmail());
@@ -91,15 +76,6 @@ public class Controller {
         return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
     }
 
-    @PostMapping("/registercustomer")
-    public ResponseEntity<Customer> addCustomer(@RequestBody Customer customer){
-        if(customer.getEmail()==null || customer.getName()==null || customer.getGender()==null || customer.getPhoneNumber()==null){
-            throw new IllegalStateException("information's missed");
-        }
-        Customer customer1=service.addCustomer(customer);
-        return new ResponseEntity<>(customer1,HttpStatus.CREATED);
-    }
-
     @PostMapping("/registercustomerlogin")
     public ResponseEntity<CustomerLogin> addCustomer(@RequestBody CustomerLogin customerLogin){
         if(customerLogin.getEmail()==null){
@@ -130,31 +106,6 @@ public class Controller {
             return  new ResponseEntity<>(custObj,HttpStatus.ACCEPTED);
     }
 
-    @PostMapping("/command")
-    public ResponseEntity<Command> command(@RequestBody Command command){
-
-
-        List<Customer> customer=service.findCustomerByName(command.getCname());
-
-        if(customer==null){
-            throw new IllegalStateException("Invalid name ");
-        }
-        Storage storage=service.findStorageByProductName(command.getName());
-            if(storage==null){
-                throw new IllegalStateException(" this product doesn't exists in stock");
-            }else {
-                if(storage.getProductQuantity()<command.getQte()){
-                    throw new IllegalStateException(" sold out");
-                }
-            }
-        if (storage.getState().contentEquals("promotion")){
-            command.setPrice(storage.getPromotionPrice()*command.getQte());
-        }else{
-            command.setPrice(storage.getProductPrice()*command.getQte());}
-
-        Command obj=service.command(command);
-        return new ResponseEntity<>(obj,HttpStatus.CREATED);
-    }
     @PostMapping("/commandLogin")
     public ResponseEntity<Command> commandL(@RequestBody Command command){
 
@@ -240,6 +191,7 @@ public class Controller {
         response.setHeader(headerKey, headerValue);
         this.service.export(response);
     }
+
     @GetMapping("/pdfStock")
     public void stockPDF(HttpServletResponse response) throws IOException {
         response.setContentType("application/pdf");
@@ -248,6 +200,7 @@ public class Controller {
         response.setHeader(headerKey, headerValue);
         this.service.exportStock(response);
     }
+
     @GetMapping("/pdfCustomers")
     public void customersPDF(HttpServletResponse response) throws IOException {
         response.setContentType("application/pdf");
@@ -264,12 +217,6 @@ public class Controller {
         String headerValue = "attachment; filename=List-of-reclamations.pdf";
         response.setHeader(headerKey, headerValue);
         this.service.exportReclamation(response);
-    }
-
-    @GetMapping("/listCustomers")
-    public ResponseEntity<List<Customer>> getCustomers(){
-        List<Customer> customers=service.findcustomers();
-        return new ResponseEntity<>(customers,HttpStatus.OK);
     }
 
     @GetMapping("/listCustomerLogins")
@@ -335,10 +282,10 @@ public class Controller {
     public ResponseEntity<Reclamation> reclamation(@RequestBody Reclamation reclamation){
         Storage storage=service.findStorageByProductName(reclamation.getProductName());
         CustomerLogin customer=service.findCustomerLoginByNameAndEmail(reclamation.getClientName(),reclamation.getClientEmail());
-        List<Customer> customers=service.findCustomerByNameAndEmail(reclamation.getClientName(),reclamation.getClientEmail());
+
         Reservation reservation=service.findReservationByNameAndEmailAndId(reclamation.getClientName(),reclamation.getClientEmail(),reclamation.getCodeCommand());
         List<Product> products=service.findProductByCp_fkAndName(reclamation.getCodeCommand(),reclamation.getProductName());
-        if (customer==null && customers.isEmpty()){
+        if (customer==null ){
             throw new IllegalStateException("please enter valid name and email");
         }
         if (reservation==null){

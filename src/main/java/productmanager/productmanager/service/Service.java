@@ -20,7 +20,7 @@ import java.util.List;
 @org.springframework.stereotype.Service
 @Transactional
 public class Service {
-    private final CustomerRepo customerRepo;
+
     private final CustomerLoginRepo customerLoginRepo;
     private final ProductRepo productRepo;
     private final AdminRepo adminRepo;
@@ -31,8 +31,7 @@ public class Service {
 
 
     @Autowired
-    public Service(CustomerRepo customerRepo, CustomerLoginRepo customerLoginRepo, ProductRepo productRepo, AdminRepo adminRepo, ReservationRepo reservationRepo, CommandRepo commandRepo, StorageRepo storageRepo, ReclamationRepo reclamationRepo) {
-        this.customerRepo = customerRepo;
+    public Service(CustomerLoginRepo customerLoginRepo, ProductRepo productRepo, AdminRepo adminRepo, ReservationRepo reservationRepo, CommandRepo commandRepo, StorageRepo storageRepo, ReclamationRepo reclamationRepo) {
         this.customerLoginRepo = customerLoginRepo;
         this.productRepo = productRepo;
         this.adminRepo = adminRepo;
@@ -61,16 +60,6 @@ public class Service {
         return customerLoginRepo.findCustomerByNameAndPassword(custName,custPassword);
     }
 
-    public List<Customer> findCustomerByNameAndEmail(String name, String email) {
-        return customerRepo.findCustomerByNameAndEmail(name,email);
-    }
-
-    public Customer addCustomer(Customer customer) {
-        return customerRepo.save(customer);
-    }
-
-
-
     public CustomerLogin findCustomerLoginByNameAndEmail(String name,String email) {
         return customerLoginRepo.findCustomerLoginByNameAndEmail(name,email);
     }
@@ -81,10 +70,6 @@ public class Service {
 
     public void customerPlaceOrder(Reservation reservation) {
         reservationRepo.save(reservation);
-    }
-
-    public Customer findCustomerByEmail(String email) {
-        return customerRepo.findCustomerByEmail(email);
     }
 
     public CustomerLogin findCustomerLoginByEmail(String email) {
@@ -134,6 +119,8 @@ public class Service {
         fontTable.setSize(8);
         Font fontTableRows = FontFactory.getFont(FontFactory.HELVETICA);
         fontTableRows.setSize(8);
+        Font fontFooter=FontFactory.getFont(FontFactory.HELVETICA_BOLD);
+        fontFooter.setSize(8);
 
         Paragraph paragraph = new Paragraph("List of commands:", fontTitle);
         paragraph.setAlignment(Paragraph.ALIGN_CENTER);
@@ -148,7 +135,7 @@ public class Service {
         PdfPTable table= new PdfPTable(12);
         table.setLockedWidth(true);
         table.setTotalWidth(580f);
-        float[] widths=new float[]{5f,11f,26f,15f,12f,14f,12f,10f,20f,10f,15f,19f};
+        float[] widths=new float[]{5f,9f,26f,15f,12f,14f,12f,10f,20f,10f,19f,17f};
         table.setWidths(widths);
         PdfPCell c1=new PdfPCell(new Phrase("Id",fontTable));
         table.addCell(c1);
@@ -188,7 +175,8 @@ public class Service {
         c1=new PdfPCell(new Phrase("Total",fontTable));
         table.addCell(c1);
         table.setHeaderRows(1);
-
+        float totalQ=0;
+        float totalP=0;
         List<Reservation> reservations=reservationRepo.findAll();
         for (Reservation reservation : reservations) {
             for (int j = 0; j < reservation.getProducts().size(); j++) {
@@ -202,10 +190,26 @@ public class Service {
                 table.addCell(new Phrase(reservation.getVille(), fontTableRows));
                 table.addCell(new Phrase(reservation.getProducts().get(j).getName(), fontTableRows));
                 table.addCell(new Phrase(String.valueOf(reservation.getProducts().get(j).getQte()), fontTableRows));
-                table.addCell(new Phrase(reservation.getProducts().get(j).getPrice() + " $", fontTableRows));
-                table.addCell(new Phrase(reservation.getTotal() + " $", fontTableRows));
+                table.addCell(new Phrase(reservation.getProducts().get(j).getPrice() + " dh", fontTableRows));
+                table.addCell(new Phrase(reservation.getTotal() + " dh", fontTableRows));
+                totalQ += reservation.getProducts().get(j).getQte();
+                totalP += reservation.getProducts().get(j).getPrice();
             }
         }
+
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("Total", fontFooter));
+        table.addCell(new Phrase(String.valueOf(totalQ), fontFooter));
+        table.addCell(new Phrase(totalP +" dh", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
+
         document.add(table);
         document.close();
     }
@@ -220,6 +224,8 @@ public class Service {
         fontTable.setSize(8);
         Font fontTableRows = FontFactory.getFont(FontFactory.HELVETICA);
         fontTableRows.setSize(8);
+        Font fontFooter=FontFactory.getFont(FontFactory.HELVETICA_BOLD);
+        fontFooter.setSize(8);
 
         Paragraph paragraph = new Paragraph("List of Products:", fontTitle);
         paragraph.setAlignment(Paragraph.ALIGN_CENTER);
@@ -262,18 +268,32 @@ public class Service {
         table.setHeaderRows(1);
 
         List<Storage> products=storageRepo.findAll();
+        float totalQI=0;
+        float totalQ=0;
+        float totalPrice=0;
+        float totalProm=0;
         for (Storage product : products) {
-
             table.addCell(new Phrase(String.valueOf(product.getId()), fontTableRows));
             table.addCell(new Phrase(product.getProductName(), fontTableRows));
             table.addCell(new Phrase(String.valueOf(product.getProductQuantityI()), fontTableRows));
             table.addCell(new Phrase(String.valueOf(product.getProductQuantity()), fontTableRows));
-            table.addCell(new Phrase(product.getProductPrice() + " $", fontTableRows));
-            table.addCell(new Phrase(product.getPromotionPrice() + " $", fontTableRows));
+            table.addCell(new Phrase(product.getProductPrice() + " dh", fontTableRows));
+            table.addCell(new Phrase(product.getPromotionPrice() + " dh", fontTableRows));
             table.addCell(new Phrase(product.getCategory(), fontTableRows));
             table.addCell(new Phrase(product.getState(), fontTableRows));
-
+            totalQI += product.getProductQuantityI();
+            totalQ += product.getProductQuantity();
+            totalPrice += product.getProductPrice();
+            totalProm += product.getPromotionPrice();
         }
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("Total", fontFooter));
+        table.addCell(new Phrase(String.valueOf(totalQI), fontFooter));
+        table.addCell(new Phrase(String.valueOf(totalQ), fontFooter));
+        table.addCell(new Phrase(totalPrice + " dh", fontFooter));
+        table.addCell(new Phrase(totalProm + " dh", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
         document.add(table);
         document.close();
     }
@@ -316,16 +336,8 @@ public class Service {
 
         table.setHeaderRows(1);
 
-        List<Customer> customers=customerRepo.findAll();
         List<CustomerLogin> customerLogins=customerLoginRepo.findAll();
 
-        for (Customer customer : customers) {
-
-            table.addCell(new Phrase(customer.getName(), fontTableRows));
-            table.addCell(new Phrase(customer.getEmail(), fontTableRows));
-            table.addCell(new Phrase(customer.getPhoneNumber(), fontTableRows));
-
-        }
         for (CustomerLogin customerLogin : customerLogins) {
 
             table.addCell(new Phrase(customerLogin.getName(), fontTableRows));
@@ -417,17 +429,11 @@ public class Service {
         return storageRepo.findStorageByState(state);
     }
 
-    public List<Customer> findCustomerByName(String name) {
-        return customerRepo.findCustomerByName(name);
-    }
 
     public CustomerLogin findCustomerLoginByName(String name) {
         return customerLoginRepo.findCustomerLoginByName(name);
     }
 
-    public List<Customer> findcustomers() {
-        return customerRepo.findAll();
-    }
 
     public List<CustomerLogin> findCustomerLogins() {
         return customerLoginRepo.findAll();
