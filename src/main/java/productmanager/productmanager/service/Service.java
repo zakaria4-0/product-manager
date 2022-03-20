@@ -4,7 +4,6 @@ import com.lowagie.text.*;
 import com.lowagie.text.Font;
 import com.lowagie.text.pdf.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import productmanager.productmanager.dto.OrderResponse;
 
 import productmanager.productmanager.model.*;
 import productmanager.productmanager.repo.*;
@@ -48,8 +47,8 @@ public class Service {
         return reservationRepo.findAll();
     }
 
-    public List<OrderResponse> getInfo() {
-        return  reservationRepo.getInformation();
+    public List<Reservation> getReservations() {
+        return  reservationRepo.findAll();
     }
 
     public Admin findAdminByNameAndPassword(String adminName, String adminPassword) {
@@ -469,4 +468,7 @@ public class Service {
     }
 
 
+    public List<Reservation> findReservationbyEmail(String email) {
+        return reservationRepo.findReservationByEmail(email);
+    }
 }

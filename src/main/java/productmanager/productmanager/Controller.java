@@ -4,7 +4,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import productmanager.productmanager.dto.KPI;
-import productmanager.productmanager.dto.OrderResponse;
 import productmanager.productmanager.model.*;
 import productmanager.productmanager.service.Service;
 
@@ -57,8 +56,8 @@ public class Controller {
     }
 
     @GetMapping("/getinfo")
-    public List<OrderResponse> responseInfo(){
-        return service.getInfo();
+    public List<Reservation> responseInfo(){
+        return service.getReservations();
     }
 
     @PostMapping("/adminloging")
@@ -244,7 +243,7 @@ public class Controller {
             }
             max= Collections.max(maxId);
 
-            float efficiency=(float) 100*(max-reservations.get(0).getId()+1)/500;
+            float efficiency=(float) 100*(max-reservations.get(0).getId()+1)/50;
             kpi.setEfficiency(efficiency);
         }else{
             kpi.setEfficiency(0);
@@ -256,7 +255,7 @@ public class Controller {
                 maxId1.add(R.getId());
             }
             max1=Collections.max(maxId1);
-            float PPM=(float) 1000000*(max1-reclamations.get(0).getId()+1)/500;
+            float PPM=(float) 1000000*(max1-reclamations.get(0).getId()+1)/50;
             kpi.setPPM(PPM);
         }else {
             kpi.setPPM(0);
@@ -312,4 +311,17 @@ public class Controller {
         return new ResponseEntity<>(reclamations,HttpStatus.OK);
     }
 
+    @GetMapping("customerReservation/{email}")
+    public ResponseEntity<List<Reservation>> reservationByCustomer(@PathVariable("email") String email){
+        List<Reservation> reservations=service.findReservationbyEmail(email);
+        if (reservations.isEmpty()){
+            throw new IllegalStateException("you have no reservations");
+        }
+        return new ResponseEntity<>(reservations,HttpStatus.OK);
+    }
+    @GetMapping("getCustomer/{name}/{password}")
+    public ResponseEntity<CustomerLogin> getCustomer(@PathVariable("name") String name,@PathVariable("password") String password){
+        CustomerLogin customerLogin=service.findCustomerLoginByNameAndPassword(name,password);
+        return new ResponseEntity<>(customerLogin,HttpStatus.OK);
+    }
 }
