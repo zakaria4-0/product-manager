@@ -324,4 +324,10 @@ public class Controller {
         CustomerLogin customerLogin=service.findCustomerLoginByNameAndPassword(name,password);
         return new ResponseEntity<>(customerLogin,HttpStatus.OK);
     }
+
+    @GetMapping("getStockId/{name}")
+    public ResponseEntity<Integer> getStorageByName(@PathVariable("name") String name){
+        Storage str=service.findStorageByProductName(name);
+        return new ResponseEntity<>(str.getId(),HttpStatus.OK);
+    }
 }
