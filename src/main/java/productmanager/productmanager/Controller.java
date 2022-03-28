@@ -235,27 +235,19 @@ public class Controller {
         KPI kpi=new KPI();
         List<Reservation> reservations=service.findReservationByDateAndTime(LocalDate.parse(date),now);
         List<Reclamation> reclamations=service.findReclamationByDateAndTime(LocalDate.parse(date),now);
-        List<Integer> maxId=new ArrayList<>();
-        int max;
+        List<Product> products=new ArrayList<>();
         if (!reservations.isEmpty()){
             for (Reservation R:reservations){
-                maxId.add(R.getId());
+                products.addAll(R.getProducts());
             }
-            max= Collections.max(maxId);
 
-            float efficiency=(float) 100*(max-reservations.get(0).getId()+1)/50;
+            float efficiency=(float) 100*(products.size())/50;
             kpi.setEfficiency(efficiency);
         }else{
             kpi.setEfficiency(0);
         }
-        List<Integer> maxId1=new ArrayList<>();
-        int max1;
         if (!reclamations.isEmpty()) {
-            for (Reclamation R:reclamations){
-                maxId1.add(R.getId());
-            }
-            max1=Collections.max(maxId1);
-            float PPM=(float) 1000000*(max1-reclamations.get(0).getId()+1)/50;
+            float PPM=(float) 1000000*(reclamations.size())/50;
             kpi.setPPM(PPM);
         }else {
             kpi.setPPM(0);
@@ -329,5 +321,11 @@ public class Controller {
     public ResponseEntity<Integer> getStorageByName(@PathVariable("name") String name){
         Storage str=service.findStorageByProductName(name);
         return new ResponseEntity<>(str.getId(),HttpStatus.OK);
+    }
+
+    @GetMapping("customerReclamation/{email}")
+    public ResponseEntity<List<Reclamation>> findReclamation(@PathVariable("email") String email){
+        List<Reclamation> reclamations=service.findReclamationByClientEmail(email);
+        return new ResponseEntity<>(reclamations,HttpStatus.OK);
     }
 }

@@ -13,6 +13,7 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -176,9 +177,14 @@ public class Service {
         table.setHeaderRows(1);
         float totalQ=0;
         float totalP=0;
+        List<String> names=new ArrayList<>();
+        List<String> quantities= new ArrayList<>();
+        List<String> prices=new ArrayList<>();
         List<Reservation> reservations=reservationRepo.findAll();
         for (Reservation reservation : reservations) {
-            for (int j = 0; j < reservation.getProducts().size(); j++) {
+            names.clear();
+            quantities.clear();
+            prices.clear();
                 table.addCell(new Phrase(String.valueOf(reservation.getId()), fontTableRows));
                 table.addCell(new Phrase(reservation.getName(), fontTableRows));
                 table.addCell(new Phrase(reservation.getEmail(), fontTableRows));
@@ -187,13 +193,19 @@ public class Service {
                 table.addCell(new Phrase(reservation.getAddress(), fontTableRows));
                 table.addCell(new Phrase(reservation.getRegion(), fontTableRows));
                 table.addCell(new Phrase(reservation.getVille(), fontTableRows));
-                table.addCell(new Phrase(reservation.getProducts().get(j).getName(), fontTableRows));
-                table.addCell(new Phrase(String.valueOf(reservation.getProducts().get(j).getQte()), fontTableRows));
-                table.addCell(new Phrase(reservation.getProducts().get(j).getPrice() + " dh", fontTableRows));
-                table.addCell(new Phrase(reservation.getTotal() + " dh", fontTableRows));
+            for (int j = 0; j < reservation.getProducts().size(); j++) {
+                names.add(reservation.getProducts().get(j).getName());
+                quantities.add(String.valueOf(reservation.getProducts().get(j).getQte()));
+                prices.add(reservation.getProducts().get(j).getPrice() + " dh");
                 totalQ += reservation.getProducts().get(j).getQte();
                 totalP += reservation.getProducts().get(j).getPrice();
             }
+                table.addCell(new Phrase(String.valueOf(names), fontTableRows));
+                table.addCell(new Phrase(String.valueOf(quantities), fontTableRows));
+                table.addCell(new Phrase(String.valueOf(prices), fontTableRows));
+                table.addCell(new Phrase(reservation.getTotal() + " dh", fontTableRows));
+
+
         }
 
         table.addCell(new Phrase("", fontFooter));
@@ -470,5 +482,9 @@ public class Service {
 
     public List<Reservation> findReservationbyEmail(String email) {
         return reservationRepo.findReservationByEmail(email);
+    }
+
+    public List<Reclamation> findReclamationByClientEmail(String email) {
+        return reclamationRepo.findReclamationByClientEmail(email);
     }
 }
