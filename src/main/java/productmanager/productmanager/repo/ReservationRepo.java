@@ -10,11 +10,13 @@ import java.time.LocalTime;
 import java.util.List;
 
 public interface ReservationRepo extends JpaRepository<Reservation,Integer> {
-    @Query("SELECT r FROM Reservation r WHERE r.date= :date AND r.time<= :now")
-    List<Reservation> findReservationByDateAndTime(@Param("date") LocalDate date,@Param("now") LocalTime now);
+
+    List<Reservation> findReservationByDate(LocalDate date);
 
 
     Reservation findReservationByNameAndEmailAndId(String clientName, String clientEmail, int codeCommand);
 
     List<Reservation> findReservationByEmail(String email);
+
+
 }

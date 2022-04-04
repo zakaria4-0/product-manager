@@ -3,6 +3,7 @@ package productmanager.productmanager.model;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 public class Reclamation {
@@ -13,23 +14,22 @@ public class Reclamation {
     private String clientName;
     private String clientEmail;
     private int codeCommand;
-    private String productName;
-    private int codeArticle;
-    private String motif;
     private LocalDate date;
     private LocalTime time;
 
+    @OneToMany(targetEntity = ProductClaimed.class, cascade = CascadeType.ALL)
+    @JoinColumn(name = "re_fk")
+    private List<ProductClaimed> productClaimeds;
 
-    public Reclamation(int id, String clientName, String clientEmail, int codeCommand, String productName, int codeArticle, String motif, LocalDate date, LocalTime time) {
+
+    public Reclamation(int id, String clientName, String clientEmail, int codeCommand, LocalDate date, LocalTime time, List<ProductClaimed> productClaimeds) {
         this.id = id;
         this.clientName = clientName;
         this.clientEmail = clientEmail;
         this.codeCommand = codeCommand;
-        this.productName = productName;
-        this.codeArticle = codeArticle;
-        this.motif = motif;
         this.date = date;
         this.time = time;
+        this.productClaimeds = productClaimeds;
     }
 
     public Reclamation() {
@@ -83,37 +83,19 @@ public class Reclamation {
         this.id = id;
     }
 
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    public int getCodeArticle() {
-        return codeArticle;
-    }
-
-    public void setCodeArticle(int codeArticle) {
-        this.codeArticle = codeArticle;
-    }
-
-    public String getMotif() {
-        return motif;
-    }
-
-    public void setMotif(String motif) {
-        this.motif = motif;
-    }
 
     @Override
     public String toString() {
         return "Reclamation{" +
                 "id=" + id +
-                ", productName='" + productName + '\'' +
-                ", codeArticle=" + codeArticle +
-                ", motif='" + motif + '\'' +
                 '}';
+    }
+
+    public List<ProductClaimed> getProductClaimeds() {
+        return productClaimeds;
+    }
+
+    public void setProductClaimeds(List<ProductClaimed> productClaimeds) {
+        this.productClaimeds = productClaimeds;
     }
 }

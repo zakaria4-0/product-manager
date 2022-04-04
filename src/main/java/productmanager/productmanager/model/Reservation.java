@@ -23,10 +23,7 @@ public class Reservation {
     @JoinColumn(name = "cp_fk",referencedColumnName = "id")
     private List<Product> products;
 
-
-
     private LocalDate date;
-
 
     private LocalTime time;
 

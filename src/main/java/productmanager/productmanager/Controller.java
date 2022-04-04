@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 
 import java.util.List;
 
@@ -111,6 +110,10 @@ public class Controller {
 
 
         CustomerLogin customerLogin=service.findCustomerLoginByName(command.getCname());
+        Command command1=service.findCommandByName(command.getName());
+        if (command1!=null){
+            throw new IllegalStateException("you can not command "+command1.getName()+"twice");
+        }
         if(customerLogin==null){
             throw new IllegalStateException("Invalid name ");
         }
@@ -231,24 +234,45 @@ public class Controller {
 
     @GetMapping("/kpi/{date}")
     public ResponseEntity<KPI> kpi(@PathVariable("date") String date){
-        LocalTime now=LocalTime.now().truncatedTo(ChronoUnit.SECONDS);
         KPI kpi=new KPI();
-        List<Reservation> reservations=service.findReservationByDateAndTime(LocalDate.parse(date),now);
-        List<Reclamation> reclamations=service.findReclamationByDateAndTime(LocalDate.parse(date),now);
-        List<Product> products=new ArrayList<>();
+        List<Reservation> reservations=service.findReservationByDate(LocalDate.parse(date));
+        List<Reclamation> reclamations=service.findReclamationByDate(LocalDate.parse(date));
+        List<Storage> storages=service.getStock();
+        int total1=0;
+        for (Storage s:storages){
+            total1+=s.getProductQuantity();
+        }
+        int total=0;
         if (!reservations.isEmpty()){
             for (Reservation R:reservations){
-                products.addAll(R.getProducts());
+                for (Product p:R.getProducts()){
+                    total += p.getQte();
+                }
             }
-
-            float efficiency=(float) 100*(products.size())/50;
+            float efficiency=(float) 100*(total)/total1;
             kpi.setEfficiency(efficiency);
         }else{
             kpi.setEfficiency(0);
         }
+        int total2=0;
         if (!reclamations.isEmpty()) {
-            float PPM=(float) 1000000*(reclamations.size())/50;
-            kpi.setPPM(PPM);
+            for (Reclamation r:reclamations){
+                for (ProductClaimed pc:r.getProductClaimeds()){
+                    total2+=pc.getQte();
+                }
+            }
+            if (!reservations.isEmpty()){
+                total=0;
+            for (Reservation R:reservations){
+                for (Product p:R.getProducts()){
+                    total += p.getQte();
+                }
+            }
+                float PPM=(float) 100*(total2)/total;
+                kpi.setPPM(PPM);
+            }else{
+                kpi.setPPM((float) 100 * (total2));
+            }
         }else {
             kpi.setPPM(0);
         }
@@ -257,39 +281,38 @@ public class Controller {
 
     @GetMapping("reservations/{date}")
     public ResponseEntity<List<Reservation>> chart(@PathVariable("date") String date){
-        LocalTime now=LocalTime.now().truncatedTo(ChronoUnit.SECONDS);
-        List<Reservation> reservations=service.findReservationByDateAndTime(LocalDate.parse(date),now);
+
+        List<Reservation> reservations=service.findReservationByDate(LocalDate.parse(date));
         return new ResponseEntity<>(reservations,HttpStatus.OK);
     }
 
     @GetMapping("reclamation/{date}")
     public ResponseEntity<List<Reclamation>> chart1(@PathVariable("date") String date){
-        LocalTime now=LocalTime.now().truncatedTo(ChronoUnit.SECONDS);
-        List<Reclamation> reclamations=service.findReclamationByDateAndTime(LocalDate.parse(date),now);
+
+        List<Reclamation> reclamations=service.findReclamationByDate(LocalDate.parse(date));
         return new ResponseEntity<>(reclamations,HttpStatus.OK);
     }
 
     @PostMapping("/addReclamation")
     public ResponseEntity<Reclamation> reclamation(@RequestBody Reclamation reclamation){
-        Storage storage=service.findStorageByProductName(reclamation.getProductName());
+
         CustomerLogin customer=service.findCustomerLoginByNameAndEmail(reclamation.getClientName(),reclamation.getClientEmail());
 
         Reservation reservation=service.findReservationByNameAndEmailAndId(reclamation.getClientName(),reclamation.getClientEmail(),reclamation.getCodeCommand());
-        List<Product> products=service.findProductByCp_fkAndName(reclamation.getCodeCommand(),reclamation.getProductName());
         if (customer==null ){
             throw new IllegalStateException("please enter valid name and email");
         }
         if (reservation==null){
             throw new IllegalStateException("Unknown command");
         }
-        if (storage==null){
-            throw new IllegalStateException("this product doesn't exists");
-        }
-        if (reclamation.getCodeArticle()!=storage.getId()){
-            throw new IllegalStateException("codeArticle incorrect");
-        }
-        if (products.isEmpty()){
-            throw new IllegalStateException("this product doesn't exists in your command");
+        for (ProductClaimed product:reclamation.getProductClaimeds()) {
+            Product product1 = service.findProductByCp_fkAndName(reclamation.getCodeCommand(), product.getName());
+            if (product1==null){
+                throw new IllegalStateException("this product: "+product.getName()+" doesn't exists in your command");
+            }
+            if (product.getQte()>product1.getQte()){
+                throw new IllegalStateException("quantity provided for: "+product.getName()+" is greater than your command's");
+            }
         }
         reclamation.setDate(LocalDate.now());
         reclamation.setTime(LocalTime.now().truncatedTo(ChronoUnit.SECONDS));
@@ -297,6 +320,33 @@ public class Controller {
         return new ResponseEntity<>(reclamation1,HttpStatus.CREATED);
     }
 
+    @PostMapping("/addReclamSupport")
+    public ResponseEntity<ReclamSupport> addRec(@RequestBody ReclamSupport reclamSupport){
+        Storage storage=service.findStorageByProductName(reclamSupport.getName());
+        if (storage==null){
+            throw new IllegalStateException("this product doesn't exists");
+        }
+        if (reclamSupport.getCodeArticle()!=storage.getId()){
+            throw new IllegalStateException("codeArticle incorrect");
+        }
+        ReclamSupport reclamSupport1=service.addReclamSupport(reclamSupport);
+        return new ResponseEntity<>(reclamSupport1,HttpStatus.CREATED);
+    }
+
+    @GetMapping("/getReclamsSupport/{cName}")
+    public ResponseEntity<List<ReclamSupport>> getReclamsSupport(@PathVariable("cName") String cName){
+        List<ReclamSupport> reclamSupportList=service.findReclamSupportByCName(cName);
+        return new ResponseEntity<>(reclamSupportList,HttpStatus.OK);
+    }
+    @DeleteMapping("/deleteReclamSupport")
+    public void deleteReclamSupport(){
+        service.deleteReclamSupport();
+    }
+
+    @DeleteMapping("/deleteReclamSupportById/{id}")
+    public void deleteReclamSupportById(@PathVariable("id") int id){
+        service.deleteReclamSupprotById(id);
+    }
     @GetMapping("/reclamations")
     public ResponseEntity<List<Reclamation>> listReclamation(){
         List<Reclamation> reclamations=service.findAllReclamation();

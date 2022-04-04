@@ -10,8 +10,9 @@ import java.time.LocalTime;
 import java.util.List;
 
 public interface ReclamationRepo extends JpaRepository<Reclamation,Integer> {
-    @Query("SELECT r FROM Reclamation r WHERE r.date= :date AND r.time<= :now")
-    List<Reclamation> findReclamationByDateAndTime(@Param("date") LocalDate date,@Param("now") LocalTime now);
+    List<Reclamation> findReclamationByDate(LocalDate date);
 
     List<Reclamation> findReclamationByClientEmail(String email);
+
+
 }

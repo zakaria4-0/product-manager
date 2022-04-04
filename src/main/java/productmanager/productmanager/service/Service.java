@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,10 +27,10 @@ public class Service {
     private final CommandRepo commandRepo;
     private final StorageRepo storageRepo;
     private final ReclamationRepo reclamationRepo;
-
+    private final ReclamSupportRepo reclamSupportRepo;
 
     @Autowired
-    public Service(CustomerLoginRepo customerLoginRepo, ProductRepo productRepo, AdminRepo adminRepo, ReservationRepo reservationRepo, CommandRepo commandRepo, StorageRepo storageRepo, ReclamationRepo reclamationRepo) {
+    public Service(CustomerLoginRepo customerLoginRepo, ProductRepo productRepo, AdminRepo adminRepo, ReservationRepo reservationRepo, CommandRepo commandRepo, StorageRepo storageRepo, ReclamationRepo reclamationRepo, ReclamSupportRepo reclamSupportRepo) {
         this.customerLoginRepo = customerLoginRepo;
         this.productRepo = productRepo;
         this.adminRepo = adminRepo;
@@ -39,6 +38,8 @@ public class Service {
         this.commandRepo = commandRepo;
         this.storageRepo = storageRepo;
         this.reclamationRepo = reclamationRepo;
+
+        this.reclamSupportRepo = reclamSupportRepo;
     }
 
 
@@ -135,7 +136,7 @@ public class Service {
         PdfPTable table= new PdfPTable(12);
         table.setLockedWidth(true);
         table.setTotalWidth(580f);
-        float[] widths=new float[]{5f,9f,26f,15f,12f,14f,12f,10f,20f,10f,19f,17f};
+        float[] widths=new float[]{5f,9f,26f,15f,12f,14f,12f,10f,22f,10f,17f,17f};
         table.setWidths(widths);
         PdfPCell c1=new PdfPCell(new Phrase("Id",fontTable));
         table.addCell(c1);
@@ -177,14 +178,8 @@ public class Service {
         table.setHeaderRows(1);
         float totalQ=0;
         float totalP=0;
-        List<String> names=new ArrayList<>();
-        List<String> quantities= new ArrayList<>();
-        List<String> prices=new ArrayList<>();
         List<Reservation> reservations=reservationRepo.findAll();
         for (Reservation reservation : reservations) {
-            names.clear();
-            quantities.clear();
-            prices.clear();
                 table.addCell(new Phrase(String.valueOf(reservation.getId()), fontTableRows));
                 table.addCell(new Phrase(reservation.getName(), fontTableRows));
                 table.addCell(new Phrase(reservation.getEmail(), fontTableRows));
@@ -193,16 +188,19 @@ public class Service {
                 table.addCell(new Phrase(reservation.getAddress(), fontTableRows));
                 table.addCell(new Phrase(reservation.getRegion(), fontTableRows));
                 table.addCell(new Phrase(reservation.getVille(), fontTableRows));
-            for (int j = 0; j < reservation.getProducts().size(); j++) {
-                names.add(reservation.getProducts().get(j).getName());
-                quantities.add(String.valueOf(reservation.getProducts().get(j).getQte()));
-                prices.add(reservation.getProducts().get(j).getPrice() + " dh");
-                totalQ += reservation.getProducts().get(j).getQte();
-                totalP += reservation.getProducts().get(j).getPrice();
+                PdfPCell pdfPCell1=new PdfPCell();
+                PdfPCell pdfPCell2=new PdfPCell();
+                PdfPCell pdfPCell3=new PdfPCell();
+            for (Product p:reservation.getProducts()) {
+                pdfPCell1.addElement(new Phrase("-"+p.getName(),fontTableRows));
+                pdfPCell2.addElement(new Phrase("-"+p.getQte(),fontTableRows));
+                pdfPCell3.addElement(new Phrase("-"+p.getPrice()+" dh",fontTableRows));
+                totalQ += p.getQte();
+                totalP += p.getPrice();
             }
-                table.addCell(new Phrase(String.valueOf(names), fontTableRows));
-                table.addCell(new Phrase(String.valueOf(quantities), fontTableRows));
-                table.addCell(new Phrase(String.valueOf(prices), fontTableRows));
+                table.addCell(pdfPCell1);
+                table.addCell(pdfPCell2);
+                table.addCell(pdfPCell3);
                 table.addCell(new Phrase(reservation.getTotal() + " dh", fontTableRows));
 
 
@@ -374,16 +372,15 @@ public class Service {
         Paragraph paragraph = new Paragraph("List of reclamations:", fontTitle);
         paragraph.setAlignment(Paragraph.ALIGN_CENTER);
 
-
-
         document.add(paragraph);
 
         document.add(Chunk.NEWLINE);
 
-
-        PdfPTable table= new PdfPTable(9);
+        PdfPTable table= new PdfPTable(10);
         table.setLockedWidth(true);
         table.setTotalWidth(580f);
+        float[] widths=new float[]{3f,10f,30f,10f,28f,10f,10f,16f,12f,10f};
+        table.setWidths(widths);
         PdfPCell c1=new PdfPCell(new Phrase("Id",fontTable));
         table.addCell(c1);
 
@@ -402,6 +399,8 @@ public class Service {
 
         c1=new PdfPCell(new Phrase("codeArticle",fontTable));
         table.addCell(c1);
+        c1=new PdfPCell(new Phrase("Quantity",fontTable));
+        table.addCell(c1);
 
         c1=new PdfPCell(new Phrase("Motif",fontTable));
         table.addCell(c1);
@@ -412,19 +411,32 @@ public class Service {
         c1=new PdfPCell(new Phrase("Time",fontTable));
 
         table.addCell(c1);
-
         table.setHeaderRows(1);
 
         List<Reclamation> reclamations=reclamationRepo.findAll();
-        for (Reclamation reclamation : reclamations) {
 
+
+        for (Reclamation reclamation : reclamations) {
             table.addCell(new Phrase(String.valueOf(reclamation.getId()), fontTableRows));
             table.addCell(new Phrase(reclamation.getClientName(), fontTableRows));
             table.addCell(new Phrase(reclamation.getClientEmail(), fontTableRows));
             table.addCell(new Phrase(String.valueOf(reclamation.getCodeCommand()), fontTableRows));
-            table.addCell(new Phrase(reclamation.getProductName(), fontTableRows));
-            table.addCell(new Phrase(String.valueOf(reclamation.getCodeArticle()), fontTableRows));
-            table.addCell(new Phrase(reclamation.getMotif(), fontTableRows));
+
+            PdfPCell pdfPCell1=new PdfPCell();
+            PdfPCell pdfPCell2=new PdfPCell();
+            PdfPCell pdfPCell3=new PdfPCell();
+            PdfPCell pdfPCell4=new PdfPCell();
+            for (ProductClaimed pc:reclamation.getProductClaimeds()){
+                pdfPCell1.addElement(new Phrase("-"+pc.getName(),fontTableRows));
+                pdfPCell2.addElement(new Phrase("-"+pc.getCodeArticle(),fontTableRows));
+                pdfPCell3.addElement(new Phrase("-"+pc.getQte(),fontTableRows));
+                pdfPCell4.addElement(new Phrase("-"+pc.getMotif(),fontTableRows));
+
+            }
+            table.addCell(pdfPCell1);
+            table.addCell(pdfPCell2);
+            table.addCell(pdfPCell3);
+            table.addCell(pdfPCell4);
             table.addCell(new Phrase(String.valueOf(reclamation.getDate()), fontTableRows));
             table.addCell(new Phrase(String.valueOf(reclamation.getTime()), fontTableRows));
         }
@@ -454,8 +466,8 @@ public class Service {
         commandRepo.deleteCommandById(id);
     }
 
-    public List<Reservation> findReservationByDateAndTime(LocalDate date, LocalTime now) {
-        return reservationRepo.findReservationByDateAndTime(date,now);
+    public List<Reservation> findReservationByDate(LocalDate date) {
+        return reservationRepo.findReservationByDate(date);
     }
 
 
@@ -467,15 +479,15 @@ public class Service {
         return reclamationRepo.findAll();
     }
 
-    public List<Reclamation> findReclamationByDateAndTime(LocalDate date, LocalTime now) {
-        return reclamationRepo.findReclamationByDateAndTime(date,now);
+    public List<Reclamation> findReclamationByDate(LocalDate date) {
+        return reclamationRepo.findReclamationByDate(date);
     }
 
     public Reservation findReservationByNameAndEmailAndId(String clientName, String clientEmail, int codeCommand) {
         return reservationRepo.findReservationByNameAndEmailAndId(clientName,clientEmail,codeCommand);
     }
 
-    public List<Product> findProductByCp_fkAndName(int codeCommand,String productName ) {
+    public Product findProductByCp_fkAndName(int codeCommand, String productName ) {
         return productRepo.findProductByCp_fkAndName(codeCommand,productName);
     }
 
@@ -486,5 +498,25 @@ public class Service {
 
     public List<Reclamation> findReclamationByClientEmail(String email) {
         return reclamationRepo.findReclamationByClientEmail(email);
+    }
+
+    public ReclamSupport addReclamSupport(ReclamSupport reclamSupport) {
+        return reclamSupportRepo.save(reclamSupport);
+    }
+
+    public void deleteReclamSupport() {
+        reclamSupportRepo.deleteAll();
+    }
+
+    public void deleteReclamSupprotById(int id) {
+        reclamSupportRepo.deleteReclamSupportById(id);
+    }
+
+    public List<ReclamSupport> findReclamSupportByCName(String cName) {
+        return reclamSupportRepo.findReclamSupportBycName(cName);
+    }
+
+    public Command findCommandByName(String name) {
+        return commandRepo.findCommandByName(name);
     }
 }
