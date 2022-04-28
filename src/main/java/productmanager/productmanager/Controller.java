@@ -378,4 +378,9 @@ public class Controller {
         List<Reclamation> reclamations=service.findReclamationByClientEmail(email);
         return new ResponseEntity<>(reclamations,HttpStatus.OK);
     }
+
+    @PutMapping("/editReclam")
+    public void editReclam(@RequestBody Reclamation reclamation){
+        service.editReclamById("clôturé",reclamation.getId());
+    }
 }

@@ -13,12 +13,14 @@ public class CustomerLogin {
     private String email;
     private String phoneNumber;
     private String password;
+    private String category;
 
-    public CustomerLogin(String name, String email, String phoneNumber, String password) {
+    public CustomerLogin(String name, String email, String phoneNumber, String password, String category) {
         this.name = name;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.password = password;
+        this.category = category;
     }
 
     public CustomerLogin() {
@@ -73,5 +75,13 @@ public class CustomerLogin {
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", password='" + password + '\'' +
                 '}';
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }

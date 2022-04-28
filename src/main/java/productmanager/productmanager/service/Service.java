@@ -279,8 +279,6 @@ public class Service {
         List<Storage> products=storageRepo.findAll();
         float totalQI=0;
         float totalQ=0;
-        float totalPrice=0;
-        float totalProm=0;
         for (Storage product : products) {
             table.addCell(new Phrase(String.valueOf(product.getId()), fontTableRows));
             table.addCell(new Phrase(product.getProductName(), fontTableRows));
@@ -292,15 +290,14 @@ public class Service {
             table.addCell(new Phrase(product.getState(), fontTableRows));
             totalQI += product.getProductQuantityI();
             totalQ += product.getProductQuantity();
-            totalPrice += product.getProductPrice();
-            totalProm += product.getPromotionPrice();
+
         }
         table.addCell(new Phrase("", fontFooter));
         table.addCell(new Phrase("Total", fontFooter));
         table.addCell(new Phrase(String.valueOf(totalQI), fontFooter));
         table.addCell(new Phrase(String.valueOf(totalQ), fontFooter));
-        table.addCell(new Phrase(totalPrice + " dh", fontFooter));
-        table.addCell(new Phrase(totalProm + " dh", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
+        table.addCell(new Phrase("", fontFooter));
         table.addCell(new Phrase("", fontFooter));
         table.addCell(new Phrase("", fontFooter));
         document.add(table);
@@ -376,10 +373,10 @@ public class Service {
 
         document.add(Chunk.NEWLINE);
 
-        PdfPTable table= new PdfPTable(10);
+        PdfPTable table= new PdfPTable(11);
         table.setLockedWidth(true);
         table.setTotalWidth(580f);
-        float[] widths=new float[]{3f,10f,30f,10f,28f,10f,10f,16f,12f,10f};
+        float[] widths=new float[]{3f,10f,30f,10f,28f,10f,10f,16f,12f,10f,8f};
         table.setWidths(widths);
         PdfPCell c1=new PdfPCell(new Phrase("Id",fontTable));
         table.addCell(c1);
@@ -409,8 +406,11 @@ public class Service {
         table.addCell(c1);
 
         c1=new PdfPCell(new Phrase("Time",fontTable));
-
         table.addCell(c1);
+
+        c1=new PdfPCell(new Phrase("Etat",fontTable));
+        table.addCell(c1);
+
         table.setHeaderRows(1);
 
         List<Reclamation> reclamations=reclamationRepo.findAll();
@@ -439,6 +439,7 @@ public class Service {
             table.addCell(pdfPCell4);
             table.addCell(new Phrase(String.valueOf(reclamation.getDate()), fontTableRows));
             table.addCell(new Phrase(String.valueOf(reclamation.getTime()), fontTableRows));
+            table.addCell(new Phrase(String.valueOf(reclamation.getEtat()), fontTableRows));
         }
         document.add(table);
         document.close();
@@ -518,5 +519,9 @@ public class Service {
 
     public Command findCommandByName(String name) {
         return commandRepo.findCommandByName(name);
+    }
+
+    public void editReclamById(String etat, int id) {
+        reclamationRepo.editReclamById(etat,id);
     }
 }

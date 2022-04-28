@@ -16,19 +16,21 @@ public class Reclamation {
     private int codeCommand;
     private LocalDate date;
     private LocalTime time;
+    private String etat;
 
     @OneToMany(targetEntity = ProductClaimed.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "re_fk")
     private List<ProductClaimed> productClaimeds;
 
 
-    public Reclamation(int id, String clientName, String clientEmail, int codeCommand, LocalDate date, LocalTime time, List<ProductClaimed> productClaimeds) {
+    public Reclamation(int id, String clientName, String clientEmail, int codeCommand, LocalDate date, LocalTime time, String etat, List<ProductClaimed> productClaimeds) {
         this.id = id;
         this.clientName = clientName;
         this.clientEmail = clientEmail;
         this.codeCommand = codeCommand;
         this.date = date;
         this.time = time;
+        this.etat = etat;
         this.productClaimeds = productClaimeds;
     }
 
@@ -97,5 +99,13 @@ public class Reclamation {
 
     public void setProductClaimeds(List<ProductClaimed> productClaimeds) {
         this.productClaimeds = productClaimeds;
+    }
+
+    public String getEtat() {
+        return etat;
+    }
+
+    public void setEtat(String etat) {
+        this.etat = etat;
     }
 }
