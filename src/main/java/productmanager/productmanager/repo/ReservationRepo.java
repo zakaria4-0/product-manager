@@ -11,7 +11,8 @@ import java.util.List;
 
 public interface ReservationRepo extends JpaRepository<Reservation,Integer> {
 
-    List<Reservation> findReservationByDate(LocalDate date);
+
+    List<Reservation> findReservationByMonth(String month);
 
 
     Reservation findReservationByNameAndEmailAndId(String clientName, String clientEmail, int codeCommand);
@@ -19,4 +20,5 @@ public interface ReservationRepo extends JpaRepository<Reservation,Integer> {
     List<Reservation> findReservationByEmail(String email);
 
 
+    List<Reservation> findReservationByYear(String year);
 }

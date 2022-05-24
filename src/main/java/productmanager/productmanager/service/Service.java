@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.Year;
 import java.util.List;
 
 
@@ -28,9 +28,10 @@ public class Service {
     private final StorageRepo storageRepo;
     private final ReclamationRepo reclamationRepo;
     private final ReclamSupportRepo reclamSupportRepo;
+    private  final ProductClaimedRepo productClaimedRepo;
 
     @Autowired
-    public Service(CustomerLoginRepo customerLoginRepo, ProductRepo productRepo, AdminRepo adminRepo, ReservationRepo reservationRepo, CommandRepo commandRepo, StorageRepo storageRepo, ReclamationRepo reclamationRepo, ReclamSupportRepo reclamSupportRepo) {
+    public Service(CustomerLoginRepo customerLoginRepo, ProductRepo productRepo, AdminRepo adminRepo, ReservationRepo reservationRepo, CommandRepo commandRepo, StorageRepo storageRepo, ReclamationRepo reclamationRepo, ReclamSupportRepo reclamSupportRepo, ProductClaimedRepo productClaimedRepo) {
         this.customerLoginRepo = customerLoginRepo;
         this.productRepo = productRepo;
         this.adminRepo = adminRepo;
@@ -40,6 +41,7 @@ public class Service {
         this.reclamationRepo = reclamationRepo;
 
         this.reclamSupportRepo = reclamSupportRepo;
+        this.productClaimedRepo = productClaimedRepo;
     }
 
 
@@ -467,8 +469,8 @@ public class Service {
         commandRepo.deleteCommandById(id);
     }
 
-    public List<Reservation> findReservationByDate(LocalDate date) {
-        return reservationRepo.findReservationByDate(date);
+    public List<Reservation> findReservationByMonth(String month) {
+        return reservationRepo.findReservationByMonth(month);
     }
 
 
@@ -480,8 +482,8 @@ public class Service {
         return reclamationRepo.findAll();
     }
 
-    public List<Reclamation> findReclamationByDate(LocalDate date) {
-        return reclamationRepo.findReclamationByDate(date);
+    public List<Reclamation> findReclamationByYear(String year) {
+        return reclamationRepo.findReclamationByYear(year);
     }
 
     public Reservation findReservationByNameAndEmailAndId(String clientName, String clientEmail, int codeCommand) {
@@ -523,5 +525,21 @@ public class Service {
 
     public void editReclamById(String etat, int id) {
         reclamationRepo.editReclamById(etat,id);
+    }
+
+    public List<ProductClaimed> findProductClaimedByMonth(String month) {
+        return productClaimedRepo.findProductClaimedByMonth(month);
+    }
+
+    public void editReclamDateById(LocalDate now, int id) {
+        reclamationRepo.editReclamDateById(now,id);
+    }
+
+    public List<Reservation> findReservationByYear(String year) {
+        return reservationRepo.findReservationByYear(year);
+    }
+
+    public List<Reclamation> findReclamationByMonth(String month) {
+        return reclamationRepo.findReclamationByMonth(month);
     }
 }

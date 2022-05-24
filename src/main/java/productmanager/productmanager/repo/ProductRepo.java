@@ -8,5 +8,4 @@ import productmanager.productmanager.model.Product;
 public interface ProductRepo extends JpaRepository<Product,Integer> {
     @Query("SELECT p FROM Reservation r JOIN r.products p WHERE r.id= :id AND p.name= :name ")
     Product findProductByCp_fkAndName(@Param("id") int codeCommand,@Param("name") String productName);
-
 }

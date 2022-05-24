@@ -11,9 +11,12 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/productmanager")
@@ -26,6 +29,8 @@ public class Controller {
 
     @PostMapping("/customerloginplaceorder")
     public ResponseEntity<Reservation> loginPlaceOrder(@RequestBody Reservation reservation){
+        DateTimeFormatter dateTimeFormatter=DateTimeFormatter.ofPattern("yyyy-MM");
+        DateTimeFormatter dateTimeFormatter2=DateTimeFormatter.ofPattern("yyyy");
         CustomerLogin objEmail=service.findCustomerLoginByNameAndEmail(reservation.getName(),reservation.getEmail());
         if(objEmail==null){
             throw new IllegalStateException("name or email doesn't exists");
@@ -38,6 +43,8 @@ public class Controller {
         LocalDate dateNow=LocalDate.now();
         reservation.setTime(now);
         reservation.setDate(dateNow);
+        reservation.setMonth(dateNow.format(dateTimeFormatter));
+        reservation.setYear(dateNow.format(dateTimeFormatter2));
 
         float total=0;
             for (Product product:reservation.getProducts()){
@@ -232,11 +239,11 @@ public class Controller {
         service.deleteComById(id);
     }
 
-    @GetMapping("/kpi/{date}")
-    public ResponseEntity<KPI> kpi(@PathVariable("date") String date){
+    @GetMapping("/kpi/{month}")
+    public ResponseEntity<KPI> kpi(@PathVariable("month") String month){
         KPI kpi=new KPI();
-        List<Reservation> reservations=service.findReservationByDate(LocalDate.parse(date));
-        List<Reclamation> reclamations=service.findReclamationByDate(LocalDate.parse(date));
+        List<Reservation> reservations=service.findReservationByMonth(month);
+        List<Reclamation> reclamations=service.findReclamationByMonth(month);
         List<Storage> storages=service.getStock();
         int total1=0;
         for (Storage s:storages){
@@ -279,23 +286,24 @@ public class Controller {
         return new ResponseEntity<>(kpi,HttpStatus.ACCEPTED);
     }
 
-    @GetMapping("reservations/{date}")
-    public ResponseEntity<List<Reservation>> chart(@PathVariable("date") String date){
+    @GetMapping("reservations/{year}")
+    public ResponseEntity<List<Reservation>> chart(@PathVariable("year") String year){
 
-        List<Reservation> reservations=service.findReservationByDate(LocalDate.parse(date));
+        List<Reservation> reservations=service.findReservationByYear(year);
         return new ResponseEntity<>(reservations,HttpStatus.OK);
     }
 
-    @GetMapping("reclamation/{date}")
-    public ResponseEntity<List<Reclamation>> chart1(@PathVariable("date") String date){
+    @GetMapping("reclamation/{year}")
+    public ResponseEntity<List<Reclamation>> chart1(@PathVariable("year") String year){
 
-        List<Reclamation> reclamations=service.findReclamationByDate(LocalDate.parse(date));
+        List<Reclamation> reclamations=service.findReclamationByYear(year);
         return new ResponseEntity<>(reclamations,HttpStatus.OK);
     }
 
     @PostMapping("/addReclamation")
     public ResponseEntity<Reclamation> reclamation(@RequestBody Reclamation reclamation){
-
+        DateTimeFormatter dateTimeFormatter=DateTimeFormatter.ofPattern("yyyy-MM");
+        DateTimeFormatter dateTimeFormatter2=DateTimeFormatter.ofPattern("yyyy");
         CustomerLogin customer=service.findCustomerLoginByNameAndEmail(reclamation.getClientName(),reclamation.getClientEmail());
 
         Reservation reservation=service.findReservationByNameAndEmailAndId(reclamation.getClientName(),reclamation.getClientEmail(),reclamation.getCodeCommand());
@@ -316,6 +324,8 @@ public class Controller {
         }
         reclamation.setDate(LocalDate.now());
         reclamation.setTime(LocalTime.now().truncatedTo(ChronoUnit.SECONDS));
+        reclamation.setMonth(LocalDate.now().format(dateTimeFormatter));
+        reclamation.setYear(LocalDate.now().format(dateTimeFormatter2));
         Reclamation reclamation1=service.addReclamation(reclamation);
         return new ResponseEntity<>(reclamation1,HttpStatus.CREATED);
     }
@@ -382,5 +392,38 @@ public class Controller {
     @PutMapping("/editReclam")
     public void editReclam(@RequestBody Reclamation reclamation){
         service.editReclamById("clôturé",reclamation.getId());
+        LocalDate now=LocalDate.now();
+        service.editReclamDateById(now,reclamation.getId());
+    }
+
+    @GetMapping("commandByCategory/{year}/{category}")
+    public ResponseEntity<List<Reservation>> listReservations(@PathVariable("year") String year,@PathVariable("category") String category){
+        List<Reservation> reservations=service.findReservationByYear(year);
+        List<Reservation> categories=new ArrayList<>();
+        for (Reservation R:reservations){
+            CustomerLogin customer=service.findCustomerLoginByEmail(R.getEmail());
+            if (Objects.equals(customer.getCategory(), category)){
+                categories.add(R);
+            }
+        }
+        return new ResponseEntity<>(categories,HttpStatus.ACCEPTED);
+    }
+    @GetMapping("commandByCategory2/{month}/{category}")
+    public ResponseEntity<List<Reservation>> listReservations2(@PathVariable("month") String month,@PathVariable("category") String category){
+        List<Reservation> reservations=service.findReservationByMonth(month);
+        List<Reservation> categories=new ArrayList<>();
+        for (Reservation R:reservations){
+            CustomerLogin customer=service.findCustomerLoginByEmail(R.getEmail());
+            if (Objects.equals(customer.getCategory(), category)){
+                categories.add(R);
+            }
+        }
+        return new ResponseEntity<>(categories,HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping("/productsClaimedByDate/{month}")
+    public ResponseEntity<List<ProductClaimed>> reclamations(@PathVariable("month") String month){
+        List<ProductClaimed> reclamations=service.findProductClaimedByMonth(month);
+        return new ResponseEntity<>(reclamations,HttpStatus.OK);
     }
 }

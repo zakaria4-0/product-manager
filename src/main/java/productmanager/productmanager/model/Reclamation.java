@@ -16,21 +16,26 @@ public class Reclamation {
     private int codeCommand;
     private LocalDate date;
     private LocalTime time;
+    private String month;
+    private String year;
     private String etat;
-
+    private LocalDate dateCloture;
     @OneToMany(targetEntity = ProductClaimed.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "re_fk")
     private List<ProductClaimed> productClaimeds;
 
 
-    public Reclamation(int id, String clientName, String clientEmail, int codeCommand, LocalDate date, LocalTime time, String etat, List<ProductClaimed> productClaimeds) {
+    public Reclamation(int id, String clientName, String clientEmail, int codeCommand, LocalDate date, LocalTime time, String month, String year, String etat, LocalDate dateCloture, List<ProductClaimed> productClaimeds) {
         this.id = id;
         this.clientName = clientName;
         this.clientEmail = clientEmail;
         this.codeCommand = codeCommand;
         this.date = date;
         this.time = time;
+        this.month = month;
+        this.year = year;
         this.etat = etat;
+        this.dateCloture = dateCloture;
         this.productClaimeds = productClaimeds;
     }
 
@@ -107,5 +112,29 @@ public class Reclamation {
 
     public void setEtat(String etat) {
         this.etat = etat;
+    }
+
+    public LocalDate getDateCloture() {
+        return dateCloture;
+    }
+
+    public void setDateCloture(LocalDate dateCloture) {
+        this.dateCloture = dateCloture;
+    }
+
+    public String getMonth() {
+        return month;
+    }
+
+    public void setMonth(String month) {
+        this.month = month;
+    }
+
+    public String getYear() {
+        return year;
+    }
+
+    public void setYear(String year) {
+        this.year = year;
     }
 }
