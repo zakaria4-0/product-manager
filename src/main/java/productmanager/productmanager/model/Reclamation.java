@@ -23,9 +23,10 @@ public class Reclamation {
     @OneToMany(targetEntity = ProductClaimed.class, cascade = CascadeType.ALL)
     @JoinColumn(name = "re_fk")
     private List<ProductClaimed> productClaimeds;
+    private String categorie;
 
 
-    public Reclamation(int id, String clientName, String clientEmail, int codeCommand, LocalDate date, LocalTime time, String month, String year, String etat, LocalDate dateCloture, List<ProductClaimed> productClaimeds) {
+    public Reclamation(int id, String clientName, String clientEmail, int codeCommand, LocalDate date, LocalTime time, String month, String year, String etat, LocalDate dateCloture, List<ProductClaimed> productClaimeds, String categorie) {
         this.id = id;
         this.clientName = clientName;
         this.clientEmail = clientEmail;
@@ -37,6 +38,7 @@ public class Reclamation {
         this.etat = etat;
         this.dateCloture = dateCloture;
         this.productClaimeds = productClaimeds;
+        this.categorie = categorie;
     }
 
     public Reclamation() {
@@ -136,5 +138,13 @@ public class Reclamation {
 
     public void setYear(String year) {
         this.year = year;
+    }
+
+    public String getCategorie() {
+        return categorie;
+    }
+
+    public void setCategorie(String categorie) {
+        this.categorie = categorie;
     }
 }

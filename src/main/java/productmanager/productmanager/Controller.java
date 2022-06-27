@@ -9,12 +9,15 @@ import productmanager.productmanager.service.Service;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,7 +36,7 @@ public class Controller {
         DateTimeFormatter dateTimeFormatter2=DateTimeFormatter.ofPattern("yyyy");
         CustomerLogin objEmail=service.findCustomerLoginByNameAndEmail(reservation.getName(),reservation.getEmail());
         if(objEmail==null){
-            throw new IllegalStateException("name or email doesn't exists");
+            throw new IllegalStateException("nom ou email invalide");
         }
         for (Product product:reservation.getProducts()){
             Storage storage=service.findStorageByProductName(product.getName());
@@ -45,6 +48,8 @@ public class Controller {
         reservation.setDate(dateNow);
         reservation.setMonth(dateNow.format(dateTimeFormatter));
         reservation.setYear(dateNow.format(dateTimeFormatter2));
+        CustomerLogin customer=service.findCustomerLoginByEmail(reservation.getEmail());
+        reservation.setCategory(customer.getCategory());
 
         float total=0;
             for (Product product:reservation.getProducts()){
@@ -74,7 +79,7 @@ public class Controller {
         if(adminName!=null && adminPassword!=null){
             adObj=service.findAdminByNameAndPassword(adminName,adminPassword);
             if(adObj==null){
-                throw new IllegalStateException("login failed");
+                throw new IllegalStateException("nom ou email invalide");
             }
             return new ResponseEntity<>(adObj, HttpStatus.ACCEPTED);
         }
@@ -84,11 +89,11 @@ public class Controller {
     @PostMapping("/registercustomerlogin")
     public ResponseEntity<CustomerLogin> addCustomer(@RequestBody CustomerLogin customerLogin){
         if(customerLogin.getEmail()==null){
-            throw new IllegalStateException("you didn't give your email");
+            throw new IllegalStateException("email requis");
         }
             CustomerLogin cEmail=service.findCustomerLoginByEmail(customerLogin.getEmail());
             if (cEmail!=null){
-                throw new IllegalStateException("customer with this email: "+cEmail+" already exists");
+                throw new IllegalStateException("email déja utilisé");
             }
 
             CustomerLogin customerLogin1=service.addCustomerLogin(customerLogin);
@@ -102,11 +107,11 @@ public class Controller {
         String custPassword=customerLogin.getPassword();
 
         if(custName==null && custPassword==null){
-            throw new IllegalStateException("please give name and password");
+            throw new IllegalStateException("donner votre nom et mot de passe");
         }
            CustomerLogin custObj=service.findCustomerLoginByNameAndPassword(custName,custPassword);
             if(custObj==null){
-                throw new IllegalStateException("login failed");
+                throw new IllegalStateException("nom ou mot de passe invalide");
             }
             return  new ResponseEntity<>(custObj,HttpStatus.ACCEPTED);
     }
@@ -119,17 +124,17 @@ public class Controller {
         CustomerLogin customerLogin=service.findCustomerLoginByName(command.getCname());
         Command command1=service.findCommandByName(command.getName());
         if (command1!=null){
-            throw new IllegalStateException("you can not command "+command1.getName()+"twice");
+            throw new IllegalStateException("produit :"+command1.getName()+" existe déja dans votre panier");
         }
         if(customerLogin==null){
-            throw new IllegalStateException("Invalid name ");
+            throw new IllegalStateException("nom invalide ");
         }
         Storage storage=service.findStorageByProductName(command.getName());
         if(storage==null){
-            throw new IllegalStateException(" this product doesn't exists in stock");
+            throw new IllegalStateException("produit n'existe pas sur le stock ");
         }
         if(storage.getProductQuantity()<command.getQte()){
-                throw new IllegalStateException(" sold out");
+                throw new IllegalStateException(" rupture de stock");
         }
 
         if (storage.getState().contentEquals("promotion")) {
@@ -156,7 +161,7 @@ public class Controller {
     public ResponseEntity<Storage> addToStock(@RequestBody Storage storage){
         Storage stockVer=service.findStorageByProductName(storage.getProductName());
         if(stockVer!=null){
-            throw new IllegalStateException("Product already exists");
+            throw new IllegalStateException("Produit existe déja sur le stock");
         }
         Storage stock=service.addProductToStock(storage);
         return new ResponseEntity<>(stock,HttpStatus.CREATED);
@@ -192,42 +197,6 @@ public class Controller {
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
-    @GetMapping("/pdfGenerate")
-    public void generatePDF(HttpServletResponse response) throws IOException {
-        response.setContentType("application/pdf");
-        String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=List-of-commands.pdf";
-        response.setHeader(headerKey, headerValue);
-        this.service.export(response);
-    }
-
-    @GetMapping("/pdfStock")
-    public void stockPDF(HttpServletResponse response) throws IOException {
-        response.setContentType("application/pdf");
-        String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=List-of-products.pdf";
-        response.setHeader(headerKey, headerValue);
-        this.service.exportStock(response);
-    }
-
-    @GetMapping("/pdfCustomers")
-    public void customersPDF(HttpServletResponse response) throws IOException {
-        response.setContentType("application/pdf");
-        String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=List-of-customers.pdf";
-        response.setHeader(headerKey, headerValue);
-        this.service.exportCustomers(response);
-    }
-
-    @GetMapping("/pdfReclamation")
-    public void reclamationPDF(HttpServletResponse response) throws IOException {
-        response.setContentType("application/pdf");
-        String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=List-of-reclamations.pdf";
-        response.setHeader(headerKey, headerValue);
-        this.service.exportReclamation(response);
-    }
-
     @GetMapping("/listCustomerLogins")
     public  ResponseEntity<List<CustomerLogin>> getCustomersLogin(){
         List<CustomerLogin> customerLogins=service.findCustomerLogins();
@@ -244,11 +213,6 @@ public class Controller {
         KPI kpi=new KPI();
         List<Reservation> reservations=service.findReservationByMonth(month);
         List<Reclamation> reclamations=service.findReclamationByMonth(month);
-        List<Storage> storages=service.getStock();
-        int total1=0;
-        for (Storage s:storages){
-            total1+=s.getProductQuantity();
-        }
         int total=0;
         if (!reservations.isEmpty()){
             for (Reservation R:reservations){
@@ -256,8 +220,7 @@ public class Controller {
                     total += p.getQte();
                 }
             }
-            float efficiency=(float) 100*(total)/total1;
-            kpi.setEfficiency(efficiency);
+            kpi.setEfficiency(total);
         }else{
             kpi.setEfficiency(0);
         }
@@ -268,18 +231,7 @@ public class Controller {
                     total2+=pc.getQte();
                 }
             }
-            if (!reservations.isEmpty()){
-                total=0;
-            for (Reservation R:reservations){
-                for (Product p:R.getProducts()){
-                    total += p.getQte();
-                }
-            }
-                float PPM=(float) 100*(total2)/total;
-                kpi.setPPM(PPM);
-            }else{
-                kpi.setPPM((float) 100 * (total2));
-            }
+                kpi.setPPM(total2);
         }else {
             kpi.setPPM(0);
         }
@@ -308,24 +260,27 @@ public class Controller {
 
         Reservation reservation=service.findReservationByNameAndEmailAndId(reclamation.getClientName(),reclamation.getClientEmail(),reclamation.getCodeCommand());
         if (customer==null ){
-            throw new IllegalStateException("please enter valid name and email");
+            throw new IllegalStateException("nom ou email invalide");
         }
         if (reservation==null){
-            throw new IllegalStateException("Unknown command");
+            throw new IllegalStateException("code_commande incorrecte");
         }
         for (ProductClaimed product:reclamation.getProductClaimeds()) {
             Product product1 = service.findProductByCp_fkAndName(reclamation.getCodeCommand(), product.getName());
             if (product1==null){
-                throw new IllegalStateException("this product: "+product.getName()+" doesn't exists in your command");
+                throw new IllegalStateException("produit: "+product.getName()+" n'existe pas dans votre commande");
             }
             if (product.getQte()>product1.getQte()){
-                throw new IllegalStateException("quantity provided for: "+product.getName()+" is greater than your command's");
+                throw new IllegalStateException("quantité réclamée de: "+product.getName()+"n'est pas valide ");
             }
         }
         reclamation.setDate(LocalDate.now());
         reclamation.setTime(LocalTime.now().truncatedTo(ChronoUnit.SECONDS));
         reclamation.setMonth(LocalDate.now().format(dateTimeFormatter));
         reclamation.setYear(LocalDate.now().format(dateTimeFormatter2));
+        CustomerLogin client=service.findCustomerLoginByEmail(reclamation.getClientEmail());
+        reclamation.setCategorie(client.getCategory());
+        reclamation.setEtat("encours");
         Reclamation reclamation1=service.addReclamation(reclamation);
         return new ResponseEntity<>(reclamation1,HttpStatus.CREATED);
     }
@@ -334,10 +289,10 @@ public class Controller {
     public ResponseEntity<ReclamSupport> addRec(@RequestBody ReclamSupport reclamSupport){
         Storage storage=service.findStorageByProductName(reclamSupport.getName());
         if (storage==null){
-            throw new IllegalStateException("this product doesn't exists");
+            throw new IllegalStateException("produit n'existe pas sur stock");
         }
         if (reclamSupport.getCodeArticle()!=storage.getId()){
-            throw new IllegalStateException("codeArticle incorrect");
+            throw new IllegalStateException("codeArticle incorrecte");
         }
         ReclamSupport reclamSupport1=service.addReclamSupport(reclamSupport);
         return new ResponseEntity<>(reclamSupport1,HttpStatus.CREATED);
@@ -367,7 +322,7 @@ public class Controller {
     public ResponseEntity<List<Reservation>> reservationByCustomer(@PathVariable("email") String email){
         List<Reservation> reservations=service.findReservationbyEmail(email);
         if (reservations.isEmpty()){
-            throw new IllegalStateException("you have no reservations");
+            throw new IllegalStateException("vous n'avez accunne commande");
         }
         return new ResponseEntity<>(reservations,HttpStatus.OK);
     }
@@ -398,27 +353,13 @@ public class Controller {
 
     @GetMapping("commandByCategory/{year}/{category}")
     public ResponseEntity<List<Reservation>> listReservations(@PathVariable("year") String year,@PathVariable("category") String category){
-        List<Reservation> reservations=service.findReservationByYear(year);
-        List<Reservation> categories=new ArrayList<>();
-        for (Reservation R:reservations){
-            CustomerLogin customer=service.findCustomerLoginByEmail(R.getEmail());
-            if (Objects.equals(customer.getCategory(), category)){
-                categories.add(R);
-            }
-        }
-        return new ResponseEntity<>(categories,HttpStatus.ACCEPTED);
+        List<Reservation> reservations=service.findReservationByYearAndCategory(year,category);
+        return new ResponseEntity<>(reservations,HttpStatus.ACCEPTED);
     }
-    @GetMapping("commandByCategory2/{month}/{category}")
-    public ResponseEntity<List<Reservation>> listReservations2(@PathVariable("month") String month,@PathVariable("category") String category){
+    @GetMapping("commandByCategory2/{month}")
+    public ResponseEntity<List<Reservation>> listReservations2(@PathVariable("month") String month){
         List<Reservation> reservations=service.findReservationByMonth(month);
-        List<Reservation> categories=new ArrayList<>();
-        for (Reservation R:reservations){
-            CustomerLogin customer=service.findCustomerLoginByEmail(R.getEmail());
-            if (Objects.equals(customer.getCategory(), category)){
-                categories.add(R);
-            }
-        }
-        return new ResponseEntity<>(categories,HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(reservations,HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/productsClaimedByDate/{month}")
@@ -426,4 +367,69 @@ public class Controller {
         List<ProductClaimed> reclamations=service.findProductClaimedByMonth(month);
         return new ResponseEntity<>(reclamations,HttpStatus.OK);
     }
+    @GetMapping("/commands/export/excel")
+    public void exportCommandsToExcel(HttpServletResponse response) throws IOException {
+        response.setContentType("application/octet-stream");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=commandes_" + currentDateTime + ".xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        List<Reservation> commands = service.getReservations();
+
+        CommandExcelExporter excelExporter = new CommandExcelExporter(commands);
+
+        excelExporter.export(response);
+    }
+    @GetMapping("/clients/export/excel")
+    public void exportClientsToExcel(HttpServletResponse response) throws IOException {
+        response.setContentType("application/octet-stream");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=clients_" + currentDateTime + ".xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        List<CustomerLogin> clients = service.findCustomerLogins();
+
+        ClientExcelExporter excelExporter = new ClientExcelExporter(clients);
+
+        excelExporter.export(response);
+    }
+    @GetMapping("/reclamations/export/excel")
+    public void exportReclamationsToExcel(HttpServletResponse response) throws IOException {
+        response.setContentType("application/octet-stream");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=réclamations_" + currentDateTime + ".xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        List<Reclamation> reclamations = service.findAllReclamation();
+
+        ReclamationExcelExporter excelExporter = new ReclamationExcelExporter(reclamations);
+
+        excelExporter.export(response);
+    }
+    @GetMapping("/stock/export/excel")
+    public void exportStockToExcel(HttpServletResponse response) throws IOException {
+        response.setContentType("application/octet-stream");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=stock_" + currentDateTime + ".xlsx";
+        response.setHeader(headerKey, headerValue);
+
+        List<Storage> storage = service.getStock();
+
+        StockExcelExporter excelExporter = new StockExcelExporter(storage);
+
+        excelExporter.export(response);
+    }
 }
+

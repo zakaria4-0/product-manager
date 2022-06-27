@@ -21,4 +21,6 @@ public interface ReservationRepo extends JpaRepository<Reservation,Integer> {
 
 
     List<Reservation> findReservationByYear(String year);
+
+    List<Reservation> findReservationByYearAndCategory(String year, String category);
 }

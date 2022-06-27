@@ -1,10 +1,10 @@
 package productmanager.productmanager.dto;
 
 public class KPI {
-    private float efficiency;
-    private float PPM;
+    private int efficiency;
+    private int PPM;
 
-    public KPI(float efficiency, float PPM) {
+    public KPI(int efficiency, int PPM) {
         this.efficiency = efficiency;
         this.PPM = PPM;
     }
@@ -12,19 +12,19 @@ public class KPI {
     public KPI() {
     }
 
-    public float getEfficiency() {
+    public int getEfficiency() {
         return efficiency;
     }
 
-    public void setEfficiency(float efficiency) {
+    public void setEfficiency(int efficiency) {
         this.efficiency = efficiency;
     }
 
-    public float getPPM() {
+    public int getPPM() {
         return PPM;
     }
 
-    public void setPPM(float PPM) {
+    public void setPPM(int PPM) {
         this.PPM = PPM;
     }
 }

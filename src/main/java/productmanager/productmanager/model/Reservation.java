@@ -28,8 +28,9 @@ public class Reservation {
     private LocalTime time;
     private String month;
     private String year;
+    private String category;
 
-    public Reservation(String name, String email, String ville, String address, float total, LocalDate date, String region, List<Product> products, LocalTime time, String month, String year) {
+    public Reservation(String name, String email, String ville, String address, float total, LocalDate date, String region, List<Product> products, LocalTime time, String month, String year, String category) {
         this.name = name;
         this.email = email;
         this.ville = ville;
@@ -41,6 +42,7 @@ public class Reservation {
         this.time = time;
         this.month = month;
         this.year = year;
+        this.category = category;
     }
 
     public Reservation() {
@@ -152,5 +154,13 @@ public class Reservation {
 
     public void setYear(String year) {
         this.year = year;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }
